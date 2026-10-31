@@ -30,8 +30,9 @@ const ACTIVITY_EVENTS = ["pointerdown", "keydown", "wheel", "touchstart", "click
 const plural = (n: number, one: string, many = `${one}s`) => `${n} ${n === 1 ? one : many}`;
 
 // Lets the app's sidebar and views lock Barry, open Privacy, and mark a visit in progress.
-type Controls = { lock: () => void; openPrivacy: () => void; setVisiting: (visiting: boolean) => void };
-export const LockControls = createContext<Controls>({ lock() {}, openPrivacy() {}, setVisiting() {} });
+// keepAlive: call on speech or other activity that doesn't come from the keyboard or pointer.
+type Controls = { lock: () => void; openPrivacy: () => void; setVisiting: (visiting: boolean) => void; keepAlive: () => void };
+export const LockControls = createContext<Controls>({ lock() {}, openPrivacy() {}, setVisiting() {}, keepAlive() {} });
 export const useLockControls = () => useContext(LockControls);
 
 export function Barry() {
@@ -167,7 +168,7 @@ function Gate({ owner }: { owner: string }) {
   if (!session) return <Unlock owner={owner} lockedBy={lockedBy} onOpen={open} />;
 
   return (
-    <LockControls value={{ lock: () => lock("Locked"), openPrivacy: () => setPrivacy(true), setVisiting }}>
+    <LockControls value={{ lock: () => lock("Locked"), openPrivacy: () => setPrivacy(true), setVisiting, keepAlive: touch }}>
       {/* translate="no" keeps health details out of the browser's cloud page translation. */}
       <div translate="no" className="contents">
         {privacy ? (
