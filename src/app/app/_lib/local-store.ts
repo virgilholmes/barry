@@ -1,6 +1,7 @@
 import { useSyncExternalStore } from "react";
+import { onReset, secureStorage } from "./secure-storage";
 
-// A tiny localStorage-backed store that React components can subscribe to.
+// A tiny store React components can subscribe to, kept in the encrypted vault (see secure-storage.ts).
 export function createLocalStore<T>({
   key,
   fallback,
@@ -16,12 +17,18 @@ export function createLocalStore<T>({
   let value = fallback;
   let loaded = false;
   const listeners = new Set<() => void>();
+  // Locking or unlocking swaps what's in the vault, so reload from it next time.
+  onReset(() => {
+    loaded = false;
+    value = fallback;
+    listeners.forEach((listener) => listener());
+  });
 
   function load() {
     if (loaded || typeof window === "undefined") return;
     loaded = true;
     try {
-      const raw = localStorage.getItem(key);
+      const raw = secureStorage.getItem(key);
       if (raw !== null) value = parse(JSON.parse(raw));
       else value = initial?.() ?? fallback;
     } catch {
@@ -38,7 +45,7 @@ export function createLocalStore<T>({
     load();
     value = typeof next === "function" ? (next as (current: T) => T)(value) : next;
     try {
-      localStorage.setItem(key, JSON.stringify(value));
+      secureStorage.setItem(key, JSON.stringify(value));
     } catch {
       // Storage unavailable; keep it in memory for this session.
     }

@@ -30,6 +30,7 @@ import { VoiceView } from "./voice-view";
 import { MessageList } from "./message-list";
 import { Onboarding } from "./onboarding";
 import { Sidebar } from "./sidebar";
+import { useLockControls } from "./barry";
 
 export function ChatApp() {
   const chats = useChats();
@@ -52,6 +53,10 @@ export function ChatApp() {
   const [mobileOpen, setMobileOpen] = useState(false);
   const [streaming, setStreaming] = useState(false);
   const abort = useRef<AbortController | null>(null);
+  const { setVisiting } = useLockControls();
+
+  // A visit can run quietly for a long time, so Barry waits longer before locking during one.
+  useEffect(() => setVisiting(view === "room"), [view, setVisiting]);
 
   const activeChat = view === "chat" ? (chats.find((chat) => chat.id === activeId) ?? null) : null;
   const activeVisit = view === "visit" ? (visits.find((visit) => visit.id === visitId) ?? null) : null;

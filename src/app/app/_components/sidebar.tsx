@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { UserButton, useUser } from "@clerk/nextjs";
-import { AudioLines, ChevronRight, PanelLeft, Plus, Search, Trash2 } from "lucide-react";
+import { AudioLines, ChevronRight, Lock, PanelLeft, Plus, Search, ShieldCheck, Trash2 } from "lucide-react";
+import { useLockControls } from "./barry";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
@@ -51,6 +52,7 @@ export function Sidebar({
   const [query, setQuery] = useState("");
   const search = useRef<HTMLInputElement>(null);
   const { user } = useUser();
+  const controls = useLockControls();
 
   const filtered = query
     ? chats.filter((chat) => chat.title.toLowerCase().includes(query.toLowerCase()))
@@ -243,6 +245,22 @@ export function Sidebar({
             </ul>
           </div>
 
+          <div className="flex shrink-0 gap-1 px-3 pt-2">
+            <button
+              onClick={controls.openPrivacy}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm text-stone-700 hover:bg-stone-200/50"
+            >
+              <ShieldCheck className="size-4" />
+              Privacy
+            </button>
+            <button
+              onClick={controls.lock}
+              className="flex h-11 flex-1 items-center justify-center gap-2 rounded-lg text-sm text-stone-700 hover:bg-stone-200/50"
+            >
+              <Lock className="size-4" />
+              Lock
+            </button>
+          </div>
           <div className="flex h-16 shrink-0 items-center gap-3 px-5">
             <UserButton />
             <div className="min-w-0 flex-1 text-sm">

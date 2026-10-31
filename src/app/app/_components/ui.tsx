@@ -2,7 +2,6 @@
 
 import { useEffect, useLayoutEffect, useRef } from "react";
 import { cn } from "@/lib/utils";
-import type { Route } from "../_lib/route";
 
 const base =
   "inline-flex min-h-12 max-w-full shrink-0 items-center justify-center gap-2 rounded-xl px-5 text-base font-semibold transition-colors disabled:pointer-events-none disabled:opacity-50 [&_svg]:size-5 [&_svg]:shrink-0";
@@ -32,28 +31,6 @@ export function TopBar({ children }: { children: React.ReactNode }) {
     <header className="sticky top-0 z-10 border-b bg-background">
       <div className="mx-auto flex min-h-16 w-full max-w-2xl flex-wrap items-center gap-2 px-4 py-2">{children}</div>
     </header>
-  );
-}
-
-const ROUTE_LABELS: Record<Route, string> = {
-  answer: "Barry can answer",
-  ask: "Your answer",
-  decide: "Your decision",
-};
-
-// Orange means Barry is acting. Black means it's the patient's turn.
-export function RouteLabel({ route }: { route: Route }) {
-  return (
-    <span
-      className={cn(
-        "inline-flex h-7 items-center rounded-md px-2.5 text-sm font-semibold",
-        route === "answer" && "bg-barry text-barry-foreground",
-        route === "ask" && "border-[1.5px] border-foreground",
-        route === "decide" && "bg-foreground text-background",
-      )}
-    >
-      {ROUTE_LABELS[route]}
-    </span>
   );
 }
 

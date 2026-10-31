@@ -1,18 +1,9 @@
 // Encrypted in localStorage with AES-256-GCM; the key is derived from the passcode and
 // only lives in memory, so reloading or leaving the page locks the vault.
 
-export type Profile = {
-  name: string;
-  conditions: string;
-  medications: string;
-  allergies: string;
-  communication: string[];
-  communicationNotes: string;
-  supporter: string;
-};
-
 export type LogEntry = { at: number; event: string };
-export type VaultData = { profile: Profile; log: LogEntry[] };
+// items holds the app's stores (profile, visits, chats…) as the JSON strings localStorage would have held.
+export type VaultData = { items: Record<string, string>; log: LogEntry[] };
 export type SecretKind = "pin" | "password";
 // iv identifies the stored copy this tab last read or wrote, so a stale tab can't overwrite a newer one.
 export type Session = { key: CryptoKey; salt: string; slot: string; iv: string | null; kind: SecretKind };
@@ -23,8 +14,10 @@ type Sealed = { v: 1; salt: string; iv: string; data: string; kind: SecretKind; 
 
 // One vault per signed-in account, so people sharing a browser can't open or erase each other's.
 const slotFor = (owner: string) => `barry:vault:${owner}`;
-// Earlier builds of the app kept chats here unencrypted.
-const LEGACY_KEYS = ["barry:chats"];
+// The app's stores used to live in plain localStorage under these keys; they move into the vault.
+const PLAIN_PREFIX = "barry:";
+const isPlainData = (key: string) =>
+  key.startsWith(PLAIN_PREFIX) && !key.startsWith("barry:vault:") && key !== "barry:model";
 // OWASP's 2023 recommendation for PBKDF2-HMAC-SHA256.
 const ITERATIONS = 600_000;
 const MAX_LOG = 200;
@@ -38,16 +31,6 @@ const FIRST_WAIT = 30_000;
 const LONGEST_WAIT = 15 * 60_000;
 export const IDLE_MINUTES = 5;
 export const VISIT_IDLE_MINUTES = 30;
-
-const emptyProfile: Profile = {
-  name: "",
-  conditions: "",
-  medications: "",
-  allergies: "",
-  communication: [],
-  communicationNotes: "",
-  supporter: "",
-};
 
 export class WrongPasscode extends Error {}
 export class StaleVault extends Error {}
@@ -199,8 +182,12 @@ async function newSession(slot: string, secret: string, kind: SecretKind, iv: st
 export async function createVault(owner: string, secret: string, kind: SecretKind) {
   // iv is null, so the first save refuses to replace a vault another tab created meanwhile.
   const session = await newSession(slotFor(owner), secret, kind, null);
-  const data = withLog({ profile: emptyProfile, log: [] }, `Created a ${kindName(kind)}`);
+  // Anything saved before the lock existed is encrypted now, then the plain copies are deleted.
+  const plain = Object.keys(localStorage).filter(isPlainData);
+  const items = Object.fromEntries(plain.map((key) => [key, localStorage.getItem(key) ?? ""]));
+  const data = withLog({ items, log: [] }, `Created a ${kindName(kind)}`);
   await saveVault(session, data);
+  plain.forEach((key) => localStorage.removeItem(key));
   return { session, data };
 }
 
@@ -238,7 +225,7 @@ export async function unlockVault(owner: string, secret: string) {
 
   const saved = JSON.parse(new TextDecoder().decode(plain)) as Partial<VaultData>;
   const data: VaultData = {
-    profile: { ...emptyProfile, ...saved.profile },
+    items: saved.items && typeof saved.items === "object" ? saved.items : {},
     log: Array.isArray(saved.log) ? saved.log : [],
   };
   const now = read(slot);
@@ -249,11 +236,7 @@ export async function unlockVault(owner: string, secret: string) {
   return { session, data, failed: sealed.failed };
 }
 
-export function purgeLegacy() {
-  LEGACY_KEYS.forEach((key) => localStorage.removeItem(key));
-}
-
 export function eraseVault(owner: string) {
   localStorage.removeItem(slotFor(owner));
-  purgeLegacy();
+  Object.keys(localStorage).filter(isPlainData).forEach((key) => localStorage.removeItem(key));
 }

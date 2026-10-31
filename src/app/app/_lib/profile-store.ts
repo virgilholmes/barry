@@ -1,5 +1,6 @@
 import { countDetails, emptyProfile, type Profile } from "@/lib/profile";
 import { createLocalStore } from "./local-store";
+import { secureStorage } from "./secure-storage";
 
 const EMPTY = emptyProfile();
 
@@ -17,7 +18,7 @@ function parse(raw: unknown): Profile {
 // Carries over details saved by the earlier, free-text version of "What Barry Knows".
 function migrate(): Profile | undefined {
   try {
-    const legacy = JSON.parse(localStorage.getItem("barry:knowledge") ?? "null") as Record<
+    const legacy = JSON.parse(secureStorage.getItem("barry:knowledge") ?? "null") as Record<
       string,
       { id: string; text: string }[]
     > | null;

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useRef, useState, useSyncExternalStore } from "react";
+import { useId, useRef, useState, useSyncExternalStore } from "react";
 import { useUser } from "@clerk/nextjs";
 import { AuthShell } from "@/components/auth-shell";
 import { cn } from "@/lib/utils";
@@ -12,7 +12,6 @@ import {
   createVault,
   eraseVault,
   lockKind,
-  purgeLegacy,
   secretProblem,
   unlockVault,
   vaultStatus,
@@ -61,8 +60,6 @@ export function Unlock({
   );
   const [erasing, setErasing] = useState(false);
   const account = useAccountName(owner);
-
-  useEffect(purgeLegacy, []);
 
   function erase() {
     eraseVault(owner);

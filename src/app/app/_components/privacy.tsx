@@ -10,33 +10,30 @@ import { SecretForm } from "./unlock";
 // Each line describes what the code actually does. Keep them true when it changes.
 const PROMISES = [
   {
-    title: "Stays on this device",
-    body: "Your health details are saved only in this browser. Barry never sends them anywhere. Your Barry account is only for signing in and never sees them. Barry has no ads and no tracking tools.",
+    title: "Saved only on this device, locked",
+    body: "Your profile, visit notes and chats are saved only in this browser, encrypted with your PIN or password. Barry has no ads and no tracking tools. (Technical detail: AES-256 encryption with a key made from your PIN or password.)",
   },
   {
-    title: "Locked with your PIN or password",
-    body: "Only your PIN or password can unlock it, so not even the people who made Barry can read it. A password is much harder to guess than a PIN. After 5 wrong tries, Barry makes you wait before trying again. (Technical detail: AES-256 encryption with a key made from your PIN or password.)",
+    title: "Sent for understanding, not kept",
+    body: "To turn speech into text and to answer you, what you say or type is sent through Barry's server to Amazon Web Services (Amazon Transcribe and Amazon Bedrock). Barry's server doesn't save it.",
+  },
+  {
+    title: "Only your PIN or password opens it",
+    body: "Not even the people who made Barry can read what's saved on this device. A password is much harder to guess than a PIN. After 5 wrong tries, Barry makes you wait before trying again.",
   },
   {
     title: "Locks by itself",
     body: `Barry locks after ${IDLE_MINUTES} minutes without use, or ${VISIT_IDLE_MINUTES} minutes during a visit, and warns you a minute before. Leaving Barry, closing the page, or reloading it also locks it.`,
   },
   {
-    title: "Listens privately",
-    body: "During a visit, speech becomes text on this device. Barry never records sound. It keeps only your doctor's questions and your answers, and deletes them when the visit ends.",
-  },
-  {
-    title: "Speaks with your device's own voice",
-    body: "Barry only uses voices built into your device, so what it says out loud is never sent anywhere.",
-  },
-  {
-    title: "Asks only for what helps",
-    body: "Barry's questions never ask for your full name, birthday, address, or insurance. Your sign-in account may ask for your name, and signing in with Google or Apple shares your name with Clerk, the service Barry uses for signing in.",
+    title: "Your sign-in account",
+    body: "Your account is only for signing in and never holds your health details. It may ask for your name, and signing in with Google or Apple shares your name with Clerk, the service Barry uses for signing in.",
   },
 ];
 
 const LIMITS = [
   "Someone who can use this browser and knows or guesses your PIN or password. A PIN, or a short password, can be guessed from a copy of this device's data.",
+  "Amazon Web Services, which processes what you say and type so Barry can understand it.",
   "Your browser's password manager, if it saved your PIN or password.",
   "Your keyboard's suggestions or voice typing, and screenshot tools on your device.",
   "Browser extensions you've installed, which can read pages you open.",

@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
-import { ChatApp } from "./_components/chat-app";
+import { Barry } from "./_components/barry";
 
 export const metadata: Metadata = {
   title: "Barry",
   description: "The voice agent that goes to the doctor with you.",
 };
 
+// Barry locks the app behind a PIN or password before showing anything saved.
 export default function AppPage() {
-  return <ChatApp />;
+  return <Barry />;
 }

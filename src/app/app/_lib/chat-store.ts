@@ -1,4 +1,5 @@
 import { useSyncExternalStore } from "react";
+import { onReset, secureStorage } from "./secure-storage";
 
 export type Role = "user" | "assistant";
 
@@ -22,11 +23,17 @@ let chats: Chat[] = EMPTY;
 let loaded = false;
 const listeners = new Set<() => void>();
 
+onReset(() => {
+  chats = EMPTY;
+  loaded = false;
+  listeners.forEach((listener) => listener());
+});
+
 function load() {
   if (loaded || typeof window === "undefined") return;
   loaded = true;
   try {
-    const parsed: unknown = JSON.parse(localStorage.getItem(STORAGE_KEY) ?? "[]");
+    const parsed: unknown = JSON.parse(secureStorage.getItem(STORAGE_KEY) ?? "[]");
     if (Array.isArray(parsed)) chats = parsed as Chat[];
   } catch {
     chats = EMPTY;
@@ -36,7 +43,7 @@ function load() {
 function commit(next: Chat[]) {
   chats = [...next].sort((a, b) => b.updatedAt - a.updatedAt);
   try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
+    secureStorage.setItem(STORAGE_KEY, JSON.stringify(chats));
   } catch {
     // Storage can be unavailable (private mode, quota). Chats still live in memory.
   }
