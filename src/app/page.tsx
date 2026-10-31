@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import { Show, UserButton } from "@clerk/nextjs";
 import { AudioLines, BadgeCheck, Check, Ear, HeartHandshake, ShieldCheck, Square, Volume2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { HeroVideo } from "@/components/hero-video";
 import { Logo } from "@/components/logo";
 import { cn } from "@/lib/utils";
 
@@ -41,7 +42,7 @@ const PRINCIPLES = [
 
 export default function Home() {
   return (
-    <div className="relative flex min-h-dvh flex-col text-stone-900 selection:bg-orange-200 selection:text-black">
+    <div className="relative flex min-h-dvh flex-col bg-white text-stone-900 selection:bg-orange-200 selection:text-black">
       <header className="absolute inset-x-0 top-0 z-10 flex h-16 items-center justify-between px-5 sm:h-20 sm:px-10">
         <Link href="/" aria-label="Barry home">
           <Logo className="h-6 brightness-0 invert sm:h-7" />
@@ -68,24 +69,14 @@ export default function Home() {
 
       <main className="flex-1">
         <section className="relative isolate flex min-h-dvh flex-col justify-end overflow-hidden bg-neutral-900 px-5 pt-28 pb-10 text-white sm:px-10 sm:pb-14">
-          <video
-            autoPlay
-            muted
-            loop
-            playsInline
-            poster="/hero-poster.jpg"
-            aria-hidden
-            className="absolute inset-0 -z-20 size-full object-cover motion-reduce:hidden"
-          >
-            <source src="/hero.mp4" type="video/mp4" />
-          </video>
+          <HeroVideo />
           <div
             aria-hidden
             className="absolute inset-0 -z-30 bg-[url(/hero-poster.jpg)] bg-cover bg-center"
           />
           <div
             aria-hidden
-            className="absolute inset-0 -z-10 bg-linear-to-b from-black/45 via-black/10 via-35% to-black/75"
+            className="absolute inset-0 -z-10 bg-linear-to-b from-black/60 via-black/10 via-35% to-black/75"
           />
           <div
             aria-hidden

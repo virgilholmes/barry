@@ -6,6 +6,8 @@ const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY!;
 
 export async function updateSession(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
+  // Blank keys (a fresh copy of .env.example) mean there's no Supabase session to refresh.
+  if (!supabaseUrl || !supabaseKey) return supabaseResponse;
 
   const supabase = createServerClient(supabaseUrl, supabaseKey, {
     cookies: {
