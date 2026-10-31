@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { UserButton, useUser } from "@clerk/nextjs";
 import { PanelLeft, Search, SquarePen, Trash2, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -32,6 +33,7 @@ export function Sidebar({
 }: SidebarProps) {
   const [searching, setSearching] = useState(false);
   const [query, setQuery] = useState("");
+  const { user } = useUser();
 
   const filtered = query
     ? chats.filter((chat) => chat.title.toLowerCase().includes(query.toLowerCase()))
@@ -142,6 +144,16 @@ export function Sidebar({
                 </ul>
               </section>
             ))}
+          </div>
+
+          <div className="flex h-16 shrink-0 items-center gap-3 border-t border-sidebar-border px-4">
+            <UserButton />
+            <div className="min-w-0 flex-1 text-sm">
+              <p className="truncate font-medium">{user?.fullName || user?.username || "Your account"}</p>
+              {user?.primaryEmailAddress && (
+                <p className="truncate text-xs text-muted-foreground">{user.primaryEmailAddress.emailAddress}</p>
+              )}
+            </div>
           </div>
         </div>
       </aside>

@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { Suspense } from "react";
+import { Show, UserButton } from "@clerk/nextjs";
 import { Button } from "@/components/ui/button";
 import { Logo } from "@/components/logo";
 
@@ -33,9 +35,24 @@ export default function Home() {
         <Link href="/" aria-label="Barry home">
           <Logo className="h-6 brightness-0 invert sm:h-7" />
         </Link>
-        <Button asChild size="lg" className="rounded-full bg-white px-4 text-black hover:bg-white/85">
-          <Link href="/app">Log in</Link>
-        </Button>
+        <Suspense>
+          <div className="flex items-center gap-2">
+            <Show when="signed-out">
+              <Button asChild size="lg" variant="ghost" className="rounded-full px-4 text-white hover:bg-white/15 hover:text-white">
+                <Link href="/sign-in">Log in</Link>
+              </Button>
+              <Button asChild size="lg" className="rounded-full bg-white px-4 text-black hover:bg-white/85">
+                <Link href="/sign-up">Sign up</Link>
+              </Button>
+            </Show>
+            <Show when="signed-in">
+              <Button asChild size="lg" className="rounded-full bg-white px-4 text-black hover:bg-white/85">
+                <Link href="/app">Open Barry</Link>
+              </Button>
+              <UserButton />
+            </Show>
+          </div>
+        </Suspense>
       </header>
 
       <main className="mt-auto px-5 pb-10 sm:px-10 sm:pb-14">
