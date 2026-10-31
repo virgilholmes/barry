@@ -28,7 +28,7 @@ export function MessageList({ messages, streaming }: { messages: Message[]; stre
         {messages.map((message) =>
           message.role === "user" ? (
             <div key={message.id} className="flex justify-end">
-              <div className="max-w-[85%] rounded-3xl bg-muted px-4 py-2.5 leading-7 break-words whitespace-pre-wrap sm:max-w-[70%]">
+              <div className="max-w-[85%] rounded-2xl bg-stone-100 px-4 py-2.5 leading-7 break-words whitespace-pre-wrap sm:max-w-[70%]">
                 {message.content}
               </div>
             </div>
@@ -48,14 +48,15 @@ export function MessageList({ messages, streaming }: { messages: Message[]; stre
 function AssistantMessage({ content, pending }: { content: string; pending: boolean }) {
   const [copied, setCopied] = useState(false);
 
-  if (!content) {
-    return <span aria-label="Barry is thinking" className="mt-2 block size-3 animate-pulse rounded-full bg-orange-500" />;
-  }
-
   return (
     <div className="flex flex-col gap-1">
-      <div className="leading-7 break-words whitespace-pre-wrap">{content}</div>
-      {!pending && (
+      <span className="text-xs font-medium text-stone-400">Barry</span>
+      {content ? (
+        <div className="leading-7 break-words whitespace-pre-wrap">{content}</div>
+      ) : (
+        <span className="animate-pulse leading-7 text-muted-foreground">Thinking…</span>
+      )}
+      {content && !pending && (
         <Button
           variant="ghost"
           size="icon-sm"
@@ -67,7 +68,7 @@ function AssistantMessage({ content, pending }: { content: string; pending: bool
             setTimeout(() => setCopied(false), 1500);
           }}
         >
-          {copied ? <Check className="text-orange-500" /> : <Copy />}
+          {copied ? <Check /> : <Copy />}
         </Button>
       )}
     </div>

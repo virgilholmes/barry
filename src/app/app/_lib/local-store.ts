@@ -1,0 +1,60 @@
+import { useSyncExternalStore } from "react";
+
+// A tiny localStorage-backed store that React components can subscribe to.
+export function createLocalStore<T>({
+  key,
+  fallback,
+  parse,
+  initial,
+}: {
+  key: string;
+  fallback: T;
+  parse: (raw: unknown) => T;
+  /** Used when nothing is saved yet, e.g. to migrate older data. */
+  initial?: () => T | undefined;
+}) {
+  let value = fallback;
+  let loaded = false;
+  const listeners = new Set<() => void>();
+
+  function load() {
+    if (loaded || typeof window === "undefined") return;
+    loaded = true;
+    try {
+      const raw = localStorage.getItem(key);
+      if (raw !== null) value = parse(JSON.parse(raw));
+      else value = initial?.() ?? fallback;
+    } catch {
+      value = fallback;
+    }
+  }
+
+  function get() {
+    load();
+    return value;
+  }
+
+  function set(next: T | ((current: T) => T)) {
+    load();
+    value = typeof next === "function" ? (next as (current: T) => T)(value) : next;
+    try {
+      localStorage.setItem(key, JSON.stringify(value));
+    } catch {
+      // Storage unavailable; keep it in memory for this session.
+    }
+    listeners.forEach((listener) => listener());
+  }
+
+  function subscribe(listener: () => void) {
+    listeners.add(listener);
+    return () => {
+      listeners.delete(listener);
+    };
+  }
+
+  function use() {
+    return useSyncExternalStore(subscribe, get, () => fallback);
+  }
+
+  return { get, set, use };
+}

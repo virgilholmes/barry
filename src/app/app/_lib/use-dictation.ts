@@ -1,34 +1,8 @@
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
-
-type RecognitionResultList = ArrayLike<ArrayLike<{ transcript: string }>>;
-
-type Recognition = {
-  continuous: boolean;
-  interimResults: boolean;
-  lang: string;
-  start(): void;
-  stop(): void;
-  abort(): void;
-  onresult: ((event: { results: RecognitionResultList }) => void) | null;
-  onend: (() => void) | null;
-  onerror: (() => void) | null;
-};
-
-type RecognitionConstructor = new () => Recognition;
-
-function getRecognition(): RecognitionConstructor | undefined {
-  if (typeof window === "undefined") return undefined;
-  const w = window as unknown as {
-    SpeechRecognition?: RecognitionConstructor;
-    webkitSpeechRecognition?: RecognitionConstructor;
-  };
-  return w.SpeechRecognition ?? w.webkitSpeechRecognition;
-}
-
-const subscribe = () => () => {};
+import { useEffect, useRef, useState } from "react";
+import { getRecognition, useSpeechSupported, type Recognition } from "./speech";
 
 export function useDictation(onText: (text: string) => void) {
-  const supported = useSyncExternalStore(subscribe, () => !!getRecognition(), () => false);
+  const supported = useSpeechSupported();
   const [listening, setListening] = useState(false);
   const recognition = useRef<Recognition | null>(null);
 

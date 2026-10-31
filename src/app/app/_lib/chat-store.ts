@@ -81,6 +81,18 @@ export function createChat(content: string) {
   return chat.id;
 }
 
+export function saveChat(title: string, messages: { role: Role; content: string }[]) {
+  load();
+  const chat: Chat = {
+    id: crypto.randomUUID(),
+    title,
+    messages: messages.map((message) => ({ id: crypto.randomUUID(), ...message })),
+    updatedAt: Date.now(),
+  };
+  commit([chat, ...chats]);
+  return chat.id;
+}
+
 function updateChat(id: string, update: (chat: Chat) => Chat) {
   commit(chats.map((chat) => (chat.id === id ? update(chat) : chat)));
 }

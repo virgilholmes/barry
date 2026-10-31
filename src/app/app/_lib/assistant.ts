@@ -1,30 +1,45 @@
 import type { Message } from "./chat-store";
+import type { Profile } from "@/lib/profile";
+import type { ModelId } from "./models";
 
-// Placeholder until Barry is connected to a model. Swap this generator for a
-// real streaming call; the UI only depends on it yielding text chunks.
-const PLACEHOLDER_REPLY =
-  "I'm not connected to a model yet, so I can't give you a real answer. Once I'm live, I'll help you get ready for appointments, keep your health details in one place, and make sure your voice is heard in the room.";
-
-function wait(ms: number, signal: AbortSignal) {
-  return new Promise<void>((resolve) => {
-    const timer = setTimeout(resolve, ms);
-    signal.addEventListener("abort", () => {
-      clearTimeout(timer);
-      resolve();
-    });
-  });
-}
-
+// Streams Barry's reply from /api/chat (Amazon Bedrock) as plain text chunks.
 export async function* streamReply({
+  messages,
+  profile,
+  model,
   signal,
 }: {
   messages: Message[];
+  profile: Profile;
+  model: ModelId;
   signal: AbortSignal;
 }): AsyncGenerator<string> {
-  await wait(600, signal);
-  for (const word of PLACEHOLDER_REPLY.split(/(?<=\s)/)) {
-    if (signal.aborted) return;
-    yield word;
-    await wait(20 + Math.random() * 40, signal);
+  const response = await fetch("/api/chat", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({
+      model,
+      profile,
+      messages: messages
+        .filter((message) => message.content.trim())
+        .map(({ role, content }) => ({ role, content })),
+    }),
+    signal,
+  });
+
+  if (!response.ok || !response.body) {
+    const data: { error?: string } | null = await response.json().catch(() => null);
+    throw new Error(data?.error ?? "Please try again in a moment.");
+  }
+
+  const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+  try {
+    while (true) {
+      const { value, done } = await reader.read();
+      if (done) return;
+      yield value;
+    }
+  } finally {
+    reader.releaseLock();
   }
 }
