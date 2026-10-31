@@ -106,7 +106,7 @@ export function Onboarding({ onFinish }: { onFinish: (next: "home" | "profile" |
     <div className="fixed inset-0 z-50 flex flex-col bg-background">
       <header className="flex h-16 shrink-0 items-center gap-4 px-5 sm:px-8">
         <Logo className="h-6" />
-        <div className="mx-auto hidden h-1 w-full max-w-xs overflow-hidden rounded-full bg-stone-100 sm:block">
+        <div className="mx-auto hidden h-1 w-full max-w-xs overflow-hidden rounded-full bg-stone-100 sm:block dark:bg-stone-800">
           <div
             className="h-full rounded-full bg-orange-500 transition-[width] duration-500"
             style={{ width: `${(index / (STEPS.length - 1)) * 100}%` }}
@@ -168,7 +168,7 @@ export function Onboarding({ onFinish }: { onFinish: (next: "home" | "profile" |
       </main>
 
       {step.id !== "welcome" && step.id !== "done" && (
-        <footer className="border-t border-stone-200/70 px-6 py-4">
+        <footer className="border-t border-stone-200/70 px-6 py-4 dark:border-stone-800">
           <div className="mx-auto flex w-full max-w-xl items-center gap-3">
             <Button variant="ghost" onClick={() => setIndex(index - 1)} className="h-12 rounded-xl px-4">
               <ArrowLeft />
@@ -211,9 +211,9 @@ function VoiceButton({ listening, onClick }: { listening: boolean; onClick: () =
 }
 
 function ListeningNote({ listening, error }: { listening: boolean; error: string | null }) {
-  if (error) return <p className="mt-2 text-sm text-red-700">{error}</p>;
+  if (error) return <p className="mt-2 text-sm text-red-700 dark:text-red-400">{error}</p>;
   if (!listening) return null;
-  return <p className="mt-2 text-sm text-orange-700">Listening… I&apos;ll stop when you pause.</p>;
+  return <p className="mt-2 text-sm text-orange-700 dark:text-orange-400">Listening… I&apos;ll stop when you pause.</p>;
 }
 
 function NameStep({ onNext }: { onNext: () => void }) {
@@ -247,7 +247,7 @@ function NameStep({ onNext }: { onNext: () => void }) {
         if (value.trim()) onNext();
       }}
     >
-      <div className="flex items-center gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400">
+      <div className="flex items-center gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400 dark:border-stone-500 dark:focus-within:border-white">
         <input
           autoFocus
           value={value}
@@ -263,8 +263,36 @@ function NameStep({ onNext }: { onNext: () => void }) {
   );
 }
 
+// Light mode is Virgil's design; dark: variants keep the same chips readable on a dark page.
+const chip = (on: boolean) =>
+  cn(
+    "flex min-h-16 items-center gap-3 rounded-2xl border px-4 py-3 text-left text-[15px] transition-colors",
+    on
+      ? "border-orange-500 bg-orange-50 text-stone-900 dark:bg-orange-500/15 dark:text-white"
+      : "border-stone-200 hover:border-stone-300 dark:border-stone-500 dark:hover:border-stone-400",
+  );
+const tick = (on: boolean) =>
+  cn(
+    "grid size-6 shrink-0 place-items-center rounded-full border",
+    on ? "border-orange-500 bg-orange-500 text-white" : "border-stone-300",
+  );
+
 function CommunicationStep({ profile }: { profile: Profile }) {
   const selected = profile.communication.preferences;
+  const notes = profile.communication.notes;
+  // "Other" writes the same free-text note that What Barry Knows shows as "Anything else about how you communicate".
+  const [other, setOther] = useState(notes.trim() !== "");
+  const base = useRef("");
+  const voice = useVoiceInput({ onText: (text) => setNotes(base.current ? `${base.current} ${text}` : text) });
+
+  function setNotes(next: string) {
+    updateProfile((current) => ({ ...current, communication: { ...current.communication, notes: next } }));
+  }
+
+  function toggleOther() {
+    if (other) setNotes("");
+    setOther(!other);
+  }
 
   function toggle(id: string) {
     updateProfile((current) => ({
@@ -283,27 +311,45 @@ function CommunicationStep({ profile }: { profile: Profile }) {
       {COMMUNICATION_PREFERENCES.map((preference) => {
         const on = selected.includes(preference.id);
         return (
-          <button
-            key={preference.id}
-            onClick={() => toggle(preference.id)}
-            aria-pressed={on}
-            className={cn(
-              "flex min-h-16 items-center gap-3 rounded-2xl border px-4 py-3 text-left text-[15px] transition-colors",
-              on ? "border-orange-500 bg-orange-50 text-stone-900" : "border-stone-200 hover:border-stone-300",
-            )}
-          >
-            <span
-              className={cn(
-                "grid size-6 shrink-0 place-items-center rounded-full border",
-                on ? "border-orange-500 bg-orange-500 text-white" : "border-stone-300",
-              )}
-            >
-              {on && <Check className="size-3.5" strokeWidth={3} />}
-            </span>
+          <button key={preference.id} onClick={() => toggle(preference.id)} aria-pressed={on} className={chip(on)}>
+            <span className={tick(on)}>{on && <Check className="size-3.5" strokeWidth={3} />}</span>
             {preference.label}
           </button>
         );
       })}
+      <button
+        onClick={toggleOther}
+        aria-pressed={other}
+        aria-expanded={other}
+        aria-controls="other-communication"
+        className={chip(other)}
+      >
+        <span className={tick(other)}>{other && <Check className="size-3.5" strokeWidth={3} />}</span>
+        Other
+      </button>
+      {other && (
+        <div id="other-communication" className="sm:col-span-2">
+          <div className="flex items-start gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400 dark:border-stone-500 dark:focus-within:border-white">
+            <textarea
+              autoFocus
+              value={notes}
+              onChange={(event) => setNotes(event.target.value)}
+              placeholder="Like “I use a letter board” or “Yes is a thumbs up”"
+              aria-label="Other ways people should talk to you"
+              rows={2}
+              className="field-sizing-content min-h-20 min-w-0 flex-1 resize-none bg-transparent px-3 py-2.5 text-lg outline-none placeholder:text-stone-400"
+            />
+            <VoiceButton
+              listening={voice.listening}
+              onClick={() => {
+                base.current = getProfile().communication.notes.trim();
+                void voice.toggle();
+              }}
+            />
+          </div>
+          <ListeningNote listening={voice.listening} error={voice.error} />
+        </div>
+      )}
     </div>
   );
 }
@@ -405,7 +451,7 @@ function ListStep({ section, placeholder, profile }: { section: ListSection; pla
           void add(draft);
         }}
       >
-        <div className="flex items-center gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400">
+        <div className="flex items-center gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400 dark:border-stone-500 dark:focus-within:border-white">
           <input
             autoFocus
             value={draft}
@@ -434,7 +480,7 @@ function ListStep({ section, placeholder, profile }: { section: ListSection; pla
             return (
               <li
                 key={item.id}
-                className="flex items-center gap-3 rounded-2xl bg-stone-100 py-3 pr-2 pl-4 duration-300 animate-in fade-in"
+                className="flex items-center gap-3 rounded-2xl bg-stone-100 py-3 pr-2 pl-4 duration-300 animate-in fade-in dark:bg-stone-800"
               >
                 <Check className="size-4 shrink-0 text-orange-600" strokeWidth={3} />
                 <div className="min-w-0 flex-1">
@@ -469,7 +515,7 @@ function NotesStep({ profile }: { profile: Profile }) {
 
   return (
     <div>
-      <div className="flex items-start gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400">
+      <div className="flex items-start gap-2 rounded-2xl border border-stone-200 p-2 focus-within:border-stone-400 dark:border-stone-500 dark:focus-within:border-white">
         <textarea
           autoFocus
           value={profile.share.notes}
@@ -504,7 +550,7 @@ function Done({ profile, onFinish }: { profile: Profile; onFinish: (next: "home"
   return (
     <div>
       {total > 0 && (
-        <dl className="divide-y divide-stone-200/70 border-y border-stone-200/70">
+        <dl className="divide-y divide-stone-200/70 border-y border-stone-200/70 dark:divide-stone-800 dark:border-stone-800">
           {rows
             .filter(([, items]) => items.length > 0)
             .map(([title, items]) => (

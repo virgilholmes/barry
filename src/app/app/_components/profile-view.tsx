@@ -57,19 +57,19 @@ export function ProfileView() {
         </p>
         <button
           onClick={() => setOnboarded(false)}
-          className="mt-4 text-sm font-medium text-orange-700 underline-offset-2 hover:underline"
+          className="mt-4 text-sm font-medium text-orange-700 underline-offset-2 hover:underline dark:text-orange-400"
         >
           Set up with Barry again
         </button>
 
-        <div className="mt-10 divide-y divide-stone-200/70 border-t border-stone-200/70">
+        <div className="mt-10 divide-y divide-stone-200/70 border-t border-stone-200/70 dark:divide-stone-800 dark:border-stone-800">
           <Section title="Your name" description="What Barry calls you, and how he introduces you.">
             <input
               value={profile.name}
               onChange={(event) => updateProfile((current) => ({ ...current, name: event.target.value }))}
               placeholder="Your name"
               aria-label="Your name"
-              className="h-10 w-full max-w-xs rounded-lg border border-stone-200 bg-transparent px-3 text-[15px] outline-none placeholder:text-stone-400 focus:border-stone-400"
+              className="h-10 w-full max-w-xs rounded-lg border border-stone-200 bg-transparent px-3 text-[15px] outline-none placeholder:text-stone-400 focus:border-stone-400 dark:border-stone-500 dark:focus:border-white"
             />
           </Section>
           <ListSection<Medication>
@@ -107,7 +107,7 @@ export function ProfileView() {
                 <span
                   className={cn(
                     "rounded-full px-2 py-0.5 text-xs font-medium capitalize",
-                    a.severity === "severe" ? "bg-red-50 text-red-700" : "bg-stone-100 text-stone-600",
+                    a.severity === "severe" ? "bg-red-50 text-red-700 dark:bg-red-500/15 dark:text-red-300" : "bg-stone-100 text-stone-600 dark:bg-stone-800 dark:text-white",
                   )}
                 >
                   {a.severity}
@@ -220,7 +220,7 @@ function ListSection<T extends { id: string }>({
   return (
     <Section title={title} description={description}>
       {items.length > 0 && (
-        <ul className="-mt-2 mb-2 divide-y divide-stone-100">
+        <ul className="-mt-2 mb-2 divide-y divide-stone-100 dark:divide-stone-800">
           {items.map((item) =>
             draft?.id === item.id ? (
               <li key={item.id} className="py-3">
@@ -293,7 +293,7 @@ function ItemForm<T extends { id: string }>({
         if (valid) onSave();
       }}
       onKeyDown={(event) => event.key === "Escape" && onCancel()}
-      className="rounded-xl border border-stone-200 p-4"
+      className="rounded-xl border border-stone-200 p-4 dark:border-stone-700"
     >
       <div className="grid gap-3 sm:grid-cols-2">
         {fields.map((field, index) =>
@@ -309,7 +309,7 @@ function ItemForm<T extends { id: string }>({
             </label>
           ) : (
             <label key={field.key} className="flex flex-col gap-1.5">
-              <span className="text-xs font-medium text-stone-500">
+              <span className="text-xs font-medium text-stone-500 dark:text-stone-400">
                 {field.label}
                 {field.required && <span className="text-stone-400"> (required)</span>}
               </span>
@@ -317,7 +317,7 @@ function ItemForm<T extends { id: string }>({
                 <select
                   value={String(draft[field.key] ?? "")}
                   onChange={(event) => set(field.key, event.target.value)}
-                  className="h-10 rounded-lg border border-stone-200 bg-transparent px-2.5 text-[15px] outline-none focus:border-stone-400"
+                  className="h-10 rounded-lg border border-stone-200 bg-transparent px-2.5 text-[15px] outline-none focus:border-stone-400 dark:border-stone-500 dark:focus:border-white"
                 >
                   <option value="">Not sure</option>
                   <option value="mild">Mild</option>
@@ -331,7 +331,7 @@ function ItemForm<T extends { id: string }>({
                   value={String(draft[field.key] ?? "")}
                   onChange={(event) => set(field.key, event.target.value)}
                   placeholder={field.placeholder}
-                  className="h-10 rounded-lg border border-stone-200 bg-transparent px-3 text-[15px] outline-none placeholder:text-stone-400 focus:border-stone-400"
+                  className="h-10 rounded-lg border border-stone-200 bg-transparent px-3 text-[15px] outline-none placeholder:text-stone-400 focus:border-stone-400 dark:border-stone-500 dark:focus:border-white"
                 />
               )}
             </label>
@@ -423,8 +423,8 @@ function ShareSection({ profile }: { profile: Profile }) {
         onChange={(notes) => updateProfile((current) => ({ ...current, share: { ...current.share, notes } }))}
       />
       {preview.length > 0 && (
-        <div className="mt-5 rounded-xl bg-stone-100 px-4 py-3">
-          <p className="text-xs font-medium text-stone-500">Barry may share</p>
+        <div className="mt-5 rounded-xl bg-stone-100 px-4 py-3 dark:bg-stone-800">
+          <p className="text-xs font-medium text-stone-500 dark:text-stone-400">Barry may share</p>
           <dl className="mt-1.5 flex flex-col gap-1 text-sm">
             {preview.map((section) => (
               <div key={section.title}>
@@ -452,13 +452,13 @@ function TextArea({
 }) {
   return (
     <label className="mt-4 flex flex-col gap-1.5">
-      <span className="text-xs font-medium text-stone-500">{label}</span>
+      <span className="text-xs font-medium text-stone-500 dark:text-stone-400">{label}</span>
       <textarea
         value={value}
         onChange={(event) => onChange(event.target.value)}
         placeholder={placeholder}
         rows={2}
-        className="field-sizing-content min-h-20 resize-none rounded-lg border border-stone-200 bg-transparent px-3 py-2 text-[15px] outline-none placeholder:text-stone-400 focus:border-stone-400"
+        className="field-sizing-content min-h-20 resize-none rounded-lg border border-stone-200 bg-transparent px-3 py-2 text-[15px] outline-none placeholder:text-stone-400 focus:border-stone-400 dark:border-stone-500 dark:focus:border-white"
       />
     </label>
   );
@@ -497,7 +497,7 @@ function IconButton({ label, onClick, children }: { label: string; onClick: () =
     <button
       aria-label={label}
       onClick={onClick}
-      className="grid size-8 place-items-center rounded-md text-stone-400 hover:bg-stone-100 hover:text-foreground"
+      className="grid size-8 place-items-center rounded-md text-stone-400 hover:bg-stone-100 hover:text-foreground dark:hover:bg-stone-800"
     >
       {children}
     </button>

@@ -80,6 +80,34 @@
   }
 }
 
+/* The app was designed light-only with hard-coded stone/orange shades. In dark mode, flip those
+   shades inside the app shell so every screen stays readable without touching each component.
+   Scoped to .app-surface because the homepage relies on white pills over its video. */
+@media (prefers-color-scheme: dark) {
+  .app-surface {
+    --color-stone-50: #1c1917;
+    --color-stone-100: #292524;
+    --color-stone-200: #44403c;
+    --color-stone-300: #57534e;
+    --color-stone-500: #a8a29e;
+    --color-stone-600: #d6d3d1;
+    --color-stone-700: #e7e5e4;
+    --color-stone-900: #fafaf9;
+    --color-orange-50: #2e1a0c;
+    --color-orange-100: #3d220f;
+    --color-orange-200: #5c3212;
+    --color-orange-700: #fb923c;
+    --color-red-50: #2c1313;
+    --color-red-700: #f87171;
+  }
+  .app-surface .bg-white {
+    background-color: #1c1917;
+  }
+  .app-surface .hover\:bg-white:hover {
+    background-color: #292524;
+  }
+}
+
 @layer base {
   * {
     @apply border-border;

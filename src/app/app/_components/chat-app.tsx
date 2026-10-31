@@ -164,7 +164,7 @@ export function ChatApp() {
   );
 
   return (
-    <div className="flex h-dvh w-full overflow-hidden bg-stone-100 text-foreground selection:bg-orange-200">
+    <div className="app-surface flex h-dvh w-full overflow-hidden bg-stone-100 text-foreground selection:bg-orange-200">
       <Sidebar
         chats={chats}
         activeId={view === "chat" ? activeId : null}
