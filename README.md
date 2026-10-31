@@ -15,11 +15,12 @@ npm run dev
 
 Open http://localhost:3000. Edit `src/app/page.tsx` to update the homepage.
 
-No environment variables are required to start. If needed, copy `.env.example`
-to `.env.local` and add your configuration. Keep secrets out of `NEXT_PUBLIC_`
-variables, which are exposed to the browser.
+Before `npm run dev`, copy `.env.example` to `.env.local` and fill in the
+Supabase and Clerk keys. Keep secrets out of `NEXT_PUBLIC_` variables, which
+are exposed to the browser.
 
 ```sh
+npm test       # Run the unit tests
 npm run lint   # Check code quality
 npm run build  # Create a production build
 npm start      # Serve the production build

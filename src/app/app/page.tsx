@@ -1,7 +1,11 @@
+import type { Metadata } from "next";
+import { ChatApp } from "./_components/chat-app";
+
+export const metadata: Metadata = {
+  title: "Barry",
+  description: "The voice agent that goes to the doctor with you.",
+};
+
 export default function AppPage() {
-  return (
-    <main className="flex flex-1 items-center justify-center px-6 py-24">
-      <h1 className="text-4xl font-bold">Hello World</h1>
-    </main>
-  );
+  return <ChatApp />;
 }
