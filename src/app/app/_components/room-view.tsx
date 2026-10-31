@@ -60,6 +60,7 @@ export function RoomView({ onFinish, onEditProfile }: { onFinish: (visitId: stri
   const profile = useProfile();
   const supported = useSyncExternalStore(noop, listeningSupported, () => false);
   const [phase, setPhase] = useState<"intro" | "live" | "ending">("intro");
+  const [listeningState, setListeningState] = useState<"starting" | "listening" | "failed">("starting");
   const [consent, setConsent] = useState(false);
   const [autoAnswer, setAutoAnswer] = useState(true);
   const [lastHeard, setLastHeard] = useState("");
@@ -127,8 +128,16 @@ export function RoomView({ onFinish, onEditProfile }: { onFinish: (visitId: stri
   async function start() {
     live.current = true;
     startedAt.current = startTime();
-    setError(null);
     setPhase("live");
+    await listen();
+  }
+
+  async function listen() {
+    listener.current?.abort();
+    listener.current = null;
+    setError(null);
+    setListeningState("starting");
+    let failed = false;
     try {
       const started = await startListening("room", {
         onPartial: (text) => {
@@ -141,13 +150,21 @@ export function RoomView({ onFinish, onEditProfile }: { onFinish: (visitId: stri
           setPartial("");
           pending.current = `${pending.current} ${text}`.trim();
           clearTimeout(timer.current);
-          timer.current = setTimeout(classify, text.trim().endsWith("?") ? 150 : 900);
+          if (live.current) timer.current = setTimeout(classify, text.trim().endsWith("?") ? 150 : 900);
         },
-        onError: setError,
+        onError: (message) => {
+          failed = true;
+          setError(message);
+          setListeningState("failed");
+          listener.current?.abort();
+        },
       });
-      if (live.current) listener.current = started;
-      else started.abort();
+      if (live.current && !failed) {
+        listener.current = started;
+        setListeningState("listening");
+      } else started.abort();
     } catch (err) {
+      setListeningState("failed");
       setError(err instanceof Error ? err.message : "Barry couldn't start listening.");
     }
   }
@@ -257,9 +274,9 @@ export function RoomView({ onFinish, onEditProfile }: { onFinish: (visitId: stri
       <header className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-stone-200/70 px-4 py-3 sm:px-6">
         <Logo className="hidden h-[18px] sm:block" />
         <div className="flex items-center gap-3 sm:border-l sm:border-stone-200 sm:pl-4">
-          <VoiceOrb state={speaking ? "speaking" : "listening"} size="sm" />
+          <VoiceOrb state={speaking ? "speaking" : listeningState === "listening" ? "listening" : "idle"} size="sm" />
           <div className="leading-tight">
-            <p className="text-sm font-medium">{speaking ? "Barry is speaking" : "Listening"}</p>
+            <p className="text-sm font-medium">{speaking ? "Barry is speaking" : listeningState === "starting" ? "Starting microphone…" : listeningState === "failed" ? "Listening stopped" : "Listening"}</p>
             <p className="text-xs text-muted-foreground">
               Appointment · <Elapsed />
             </p>
@@ -275,6 +292,13 @@ export function RoomView({ onFinish, onEditProfile }: { onFinish: (visitId: stri
         </Button>
       </header>
 
+      {listeningState === "failed" && phase === "live" && (
+        <div className="flex items-center justify-between gap-3 bg-red-50 px-4 py-3 text-sm text-red-700 sm:px-6">
+          <span>Barry is not picking up this appointment.</span>
+          <Button variant="outline" onClick={listen}>Retry listening</Button>
+        </div>
+      )}
+
       {error && (
         <div role="alert" className="flex items-center gap-3 bg-red-50 px-4 py-2 text-sm text-red-700 sm:px-6">
           <span className="flex-1">{error}</span>
@@ -288,7 +312,7 @@ export function RoomView({ onFinish, onEditProfile }: { onFinish: (visitId: stri
         <main className="min-w-0 flex-1 overflow-y-auto">
           <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-6 sm:px-6">
             <p aria-live="polite" className="min-h-14 text-lg leading-relaxed text-stone-500">
-              {partial || lastHeard || "Listening for the doctor…"}
+              {partial || lastHeard || (listeningState === "failed" ? "Retry listening to continue capturing the appointment." : listeningState === "starting" ? "Starting microphone…" : "Listening for the doctor…")}
             </p>
 
             {cards.length === 0 && (

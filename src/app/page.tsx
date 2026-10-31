@@ -117,7 +117,7 @@ export default function Home() {
           >
             With you before, during and after your visit.
           </h2>
-          <ol className="mt-14 grid gap-14 lg:grid-cols-3 lg:gap-6">
+          <ol className="mt-14 grid grid-cols-1 gap-14 lg:grid-cols-3 lg:gap-6">
             <Step when="Before" title="Tell Barry about you" visual={<SetupCard />}>
               He asks about your medicines, allergies, conditions and how you like to communicate. Answer by talking
               or typing. It takes about two minutes, and you only do it once.
@@ -145,7 +145,7 @@ export default function Home() {
               help.
             </p>
 
-            <div className="mt-14 grid gap-y-14 xl:grid-cols-3 xl:gap-x-6 xl:gap-y-6">
+            <div className="mt-14 grid grid-cols-1 gap-y-14 xl:grid-cols-3 xl:gap-x-6 xl:gap-y-6">
               <Route title="Answers simple things" text="Facts like your allergies or medicines, said out loud for you.">
                 <QuestionCard
                   label="Barry answered for you"
@@ -434,7 +434,7 @@ function SummaryCard() {
 
 function Route({ title, text, children }: { title: string; text: string; children: React.ReactNode }) {
   return (
-    <div className="grid gap-6 md:grid-cols-[2fr_3fr] md:gap-10 xl:row-span-2 xl:grid-cols-1 xl:grid-rows-subgrid xl:gap-6">
+    <div className="grid grid-cols-1 gap-6 md:grid-cols-[2fr_3fr] md:gap-10 xl:row-span-2 xl:grid-cols-1 xl:grid-rows-subgrid xl:gap-6">
       <div>
         <h3 className="text-xl font-medium sm:text-2xl">{title}</h3>
         <p className="mt-1.5 max-w-md text-lg text-pretty text-stone-400">{text}</p>

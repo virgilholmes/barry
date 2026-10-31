@@ -21,14 +21,13 @@ type Purpose = "room" | "dictation";
 
 const MIC_DENIED = "Barry needs access to your microphone to listen.";
 
-let transcribeStatus: Promise<boolean> | null = null;
-
-function transcribeEnabled() {
-  transcribeStatus ??= fetch("/api/transcribe")
+async function transcribeEnabled() {
+  // Recheck each session so a temporary failure or newly configured credentials
+  // do not disable Transcribe for the lifetime of the page.
+  return fetch("/api/transcribe", { cache: "no-store" })
     .then((response) => (response.ok ? response.json() : { enabled: false }))
     .then((data: { enabled?: boolean }) => Boolean(data.enabled))
     .catch(() => false);
-  return transcribeStatus;
 }
 
 function canStream() {
@@ -76,10 +75,17 @@ function startBrowserRecognition(handlers: ListenHandlers): Listener {
       handlers.onPartial(partial.trim());
     };
     r.onerror = (event) => {
-      if (event.error === "not-allowed" || event.error === "service-not-allowed") {
-        active = false;
-        handlers.onError(MIC_DENIED);
-      }
+      if (!active || event.error === "no-speech") return;
+      active = false;
+      const message = event.error === "not-allowed" || event.error === "service-not-allowed"
+        ? MIC_DENIED
+        : event.error === "network"
+          ? "Speech recognition couldn't connect. Check your connection, then retry listening."
+          : event.error === "audio-capture"
+            ? "No microphone audio is available. Check your microphone, then retry listening."
+            : "Speech recognition stopped. Please retry listening.";
+      handlers.onError(message);
+      r.abort();
     };
     r.onend = () => {
       current = null;
@@ -178,8 +184,16 @@ async function startTranscribe(purpose: Purpose, handlers: ListenHandlers): Prom
 
   const context = new AudioContext();
   const moduleUrl = URL.createObjectURL(new Blob([WORKLET], { type: "application/javascript" }));
-  await context.audioWorklet.addModule(moduleUrl);
-  URL.revokeObjectURL(moduleUrl);
+  try {
+    await context.resume();
+    await context.audioWorklet.addModule(moduleUrl);
+  } catch (error) {
+    stream.getTracks().forEach((track) => track.stop());
+    await context.close();
+    throw error;
+  } finally {
+    URL.revokeObjectURL(moduleUrl);
+  }
 
   const source = context.createMediaStreamSource(stream);
   const worklet = new AudioWorkletNode(context, "barry-pcm16k");
@@ -191,6 +205,7 @@ async function startTranscribe(purpose: Purpose, handlers: ListenHandlers): Prom
   socket.binaryType = "arraybuffer";
   const backlog: Uint8Array[] = [];
   let closed = false;
+  let stopping = false;
   let onClosed: (() => void) | null = null;
 
   function cleanup() {
@@ -230,12 +245,16 @@ async function startTranscribe(purpose: Purpose, handlers: ListenHandlers): Prom
   };
 
   socket.onerror = () => handlers.onError("Couldn't connect to Amazon Transcribe.");
-  socket.onclose = cleanup;
+  socket.onclose = () => {
+    if (!stopping && !closed) handlers.onError("Listening disconnected. Please retry listening.");
+    cleanup();
+  };
 
   return {
     stop: () =>
       new Promise<void>((resolve) => {
         if (closed) return resolve();
+        stopping = true;
         onClosed = resolve;
         worklet.port.onmessage = null;
         // An empty audio event tells Transcribe the audio is done; it then sends
@@ -247,6 +266,7 @@ async function startTranscribe(purpose: Purpose, handlers: ListenHandlers): Prom
         }, 2000);
       }),
     abort: () => {
+      stopping = true;
       socket.close();
       cleanup();
     },
